@@ -2,14 +2,14 @@ version: '1.0'
 
 services:
   backend:
-    build: ./backend/chat-app-socket-programming/.
+    build: ./casp-backend/.
     ports:
       - 3000:3000
     depends_on:
       - mongo
 
   frontend:
-    build: ./frontend/chat-app-socket-programming/.
+    build: ./casp-frontend/.
     ports:
       - 8080:8080
     depends_on:
