@@ -1,5 +1,7 @@
-import { IsNotEmpty, IsString } from '@nestjs/class-validator';
+import { IsNotEmpty, IsString, MinLength, IsAscii } from '@nestjs/class-validator';
 
+
+const seed = "1234567890!@#$%^&*ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 export class RegisterDto {
     @IsNotEmpty()
     @IsString()
@@ -11,6 +13,8 @@ export class RegisterDto {
 
     @IsNotEmpty()
     @IsString()
+    @MinLength(8)
+    @IsAscii()
     password: string;
 
     @IsNotEmpty()

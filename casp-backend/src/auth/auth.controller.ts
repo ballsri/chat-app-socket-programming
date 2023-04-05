@@ -7,7 +7,7 @@ import { RegisterDto } from '../dtos/register.dto';
 import { validate } from '@nestjs/class-validator';
 import { BadRequestException } from '@nestjs/common';
 
-@Controller('auth')
+@Controller('api/v1/auth')
 export class AuthController {
     constructor(private authService: AuthService) { }
 
