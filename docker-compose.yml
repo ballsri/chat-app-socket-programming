@@ -17,4 +17,11 @@ services:
 
       ports:
         - 6379:6379
-        # application network, each container for a service joins this network
+  
+  postgres:
+      build: db
+      container_name: postgres  
+      ports:
+        - 5432:5432
+      env_file:
+        - .env

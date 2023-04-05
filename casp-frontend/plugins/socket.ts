@@ -1,5 +1,6 @@
 import io from 'socket.io-client';
 
+
 export default defineNuxtPlugin( () => {
   // now available on `nuxtApp.$injected`
   const socket = io('http://localhost:3004', {
