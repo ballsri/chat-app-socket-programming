@@ -1,11 +1,12 @@
 <template>
-  <Tutorial />
+    <HomeComponent />
 </template>
-
+  
 <script lang="ts">
-import Vue from 'vue'
-
-export default Vue.extend({
-  name: 'IndexPage'
-})
+import HomeComponent from '~/components/HomeComponent.vue';
+  export default {
+      name: "HomePage",
+      components: { HomeComponent }
+  }
 </script>
+  
