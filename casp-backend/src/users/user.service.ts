@@ -2,6 +2,7 @@ import { NotFoundException } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { User } from "./user.entity";
+import { UserDto } from "../dtos/entities/user.dto";
 
 export class UserService {
     constructor(
@@ -21,11 +22,24 @@ export class UserService {
         return user;
     }
 
-    async createUser(user: User): Promise<User> {
+    async createUser(userDto: UserDto): Promise<User> {
+
+        const user = new User();
+        user.username = userDto.username;
+        user.password = userDto.password;
+        user.name = userDto.name;
+
         return await this.userRepository.save(user);
     }
 
-    async updateUser(id: string, user: User): Promise<User> {
+    async updateUser(id: string, userDto: UserDto): Promise<User> {
+
+        const user = new User();
+        user.username = userDto.username;
+        user.password = userDto.password;
+        user.name = userDto.name;
+
+
         const userFound = await this.userRepository.findOneBy({id:id});
         userFound.username = user.username;
         userFound.password = user.password;
@@ -41,6 +55,8 @@ export class UserService {
         if (!userFound) {
             throw new NotFoundException(`User with username ${username} not found`);
         }
+
+    
         return userFound;
     }
 
