@@ -1,6 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import Components from 'unplugin-vue-components/vite';
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers';
+import { checker } from 'vite-plugin-checker';
+import 'nuxt';
 
 export default defineNuxtConfig({
     // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
@@ -33,6 +35,10 @@ export default defineNuxtConfig({
           Components({
             resolvers: [AntDesignVueResolver({resolveIcons: true})],
           }),
+          checker({
+            vueTsc: true,
+          }),
+          
         ],
  
         ssr: {
