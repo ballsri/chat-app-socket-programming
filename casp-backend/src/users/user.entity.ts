@@ -1,4 +1,4 @@
-import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { BeforeInsert, Column, Entity, PrimaryGeneratedColumn, Unique } from 'typeorm';
 
 @Entity()
 export class User {
@@ -6,6 +6,7 @@ export class User {
     id: string;
     
     @Column()
+    @Unique(['username'])
     username: string;
     
     @Column()

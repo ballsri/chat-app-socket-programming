@@ -51,7 +51,19 @@ export class AuthService {
 
     async register(registerDto: RegisterDto) {
         try {
+
+            // validate password and confirmpassword
+            if (registerDto.password !== registerDto.confirm_password) {
+                throw new NotFoundException(`Password and Confirm Password do not match`);
+            }
+            
             const userDto = new UserDto(registerDto.username, registerDto.password, registerDto.name);
+
+            // validate if user already exists
+            const userExists = await this.usersService.getUserByUsername(userDto.username);
+            if (userExists) {
+                throw new NotFoundException(`User already exists`);
+            }
             
             let user = await this.usersService.createUser(userDto);
             if (user)

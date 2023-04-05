@@ -17,10 +17,10 @@ export class UserDto {
     @IsString()
     password: string;
 
-    constructor(username: string, name: string, password: string) {
+    constructor(username: string, password: string, name: string,) {
         this.username = username;
-        this.name = name;
         this.password = password;
+        this.name = name;
     }
 
 }

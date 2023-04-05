@@ -39,6 +39,7 @@ export class AuthController {
         }
     }
 
+    @Post('register')
     async register(@Body() registerDto: RegisterDto) {
         try {
             let user = await this.authService.register(registerDto);
