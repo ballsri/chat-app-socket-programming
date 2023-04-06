@@ -2,14 +2,10 @@ import { Module } from '@nestjs/common';
 import { MessageGateway } from './message-event/message.gateway';
 import { DatabaseModule } from './database.module';
 import { AuthModule } from './auth/auth.module';
-
-import { ConfigModule } from '@nestjs/config';
+import { GroupModule } from './groups/group.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    envFilePath: '.env',
-    isGlobal: true,
-  }),DatabaseModule, AuthModule],
+  imports: [DatabaseModule, AuthModule, GroupModule],
   controllers: [],
   providers: [MessageGateway],
   

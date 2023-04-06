@@ -26,7 +26,7 @@
                 <div>
 
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
-                        placement="bottomRight" @confirm="confirm" @cancel="cancel">
+                        placement="bottomRight" @confirm="confirm">
                         <a-button type="danger" class="button">
                             <LogoutOutlined />
                             Logout
@@ -71,11 +71,11 @@
                         <a-avatar size="large">
                             <UserOutlined />
                         </a-avatar>
-                        <p>{{ message.message.sender }}: {{ message.message.text }}</p>
+                        <p>{{ message.user }}: {{ message.message.text }}</p>
                     </div>
                 </div>
-                <a-input ref="input" placeholder="Type a message..." v-model="newMessageText" @change="changeMessageText"
-                    @press-enter="sendMessage" />
+                <a-input v-if="activeGroupId != null" ref="input" placeholder="Type a message..." v-model="newMessageText"
+                    @change="changeMessageText" @press-enter="sendMessage" />
             </a-card>
         </div>
     </div>
@@ -119,14 +119,15 @@ export default {
                 { id: 3, name: "Group 3" },
             ],
             messages: [
-                { message: { id: 1, sender: "User 1", text: "Hello" }, group: 1, user: 'user1' },
-                { message: { id: 2, sender: "User 2", text: "Hi" }, group: 1, user: 'user1' },
-                { message: { id: 3, sender: "User 1", text: "How are you?" }, group: 1, user: 'user1' },
+                { message: { id: 1, text: "Hello", sent_at: new Date(), user_id : '1' }, group: 1, user: 'user1' },
+                { message: { id: 2, text: "Hi" , sent_at: new Date(), user_id: '2'}, group: 1, user: 'user2' },
+                { message: { id: 3, text: "How are you?", sent_at: new Date(), user_id: '1' }, group: 1, user: 'user1' },
 
             ],
             activeGroupId: null,
             activeUserId: null,
             activeUsername: null,
+            activeName: null,
             newMessageText: "",
             offsetTop: 320,
             confirm: confirm,
@@ -138,8 +139,9 @@ export default {
         let token: string | null = localStorage.getItem("jwt");
         if (token) {
             const user: any = jwtDecode(token);
-            this.activeUserId = user.sub;
+            this.activeUserId = user.id;
             this.activeUsername = user.username;
+            this.activeName = user.name;
         }
     },
 
@@ -150,13 +152,14 @@ export default {
             }
             let message: any = {
                 id: this.messages.length + 1,
-                sender: this.activeUserId,
                 text: this.newMessageText,
+                sent_at: new Date(),
+                user_id: this.activeUserId
             }
             let payload: any = {
                 message,
                 group: this.activeGroupId,
-                user: this.activeUserId
+                user: this.activeName
             }
             this.messages.push(payload);
             console.log(payload);
@@ -191,9 +194,6 @@ export default {
             this.activeGroupId = e.target.parentNode.value;
             e.target.classList.add('active');
 
-
-
-
             nuxtApp.$io.emit('joinRoom', this.activeGroupId);
         },
     },
@@ -201,7 +201,7 @@ export default {
     created() {
         nuxtApp.$io.on('broadcast_message', (message: any) => {
             console.log(message);
-            if (message.group === this.activeGroupId && message.user !== this.activeUserId) {
+            if (message.group === this.activeGroupId && message.message.user_id !== this.activeUserId) {
                 this.messages.push(message);
                 this.$nextTick(() => {
                     this.scrollToBottom();

@@ -1,7 +1,8 @@
 
+import { Group } from "./groups/group.entity";
 import { User } from "./users/user.entity";
 
-const entities = [User,];
+const entities = [User, Group];
 
-export {User};
+export { User, Group };
 export default entities;
