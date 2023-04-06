@@ -1,17 +1,18 @@
 <template>
     <div class="login-container">
-        <a-avatar class="logo" shape="square" size="large"
-            :src="logo"></a-avatar>
+        <a-avatar class="logo" shape="square" size="large" :src="logo"></a-avatar>
 
         <div class="title">
             {{ title }}
         </div>
         <a-form class="login-form" @submit.prevent="login">
             <a-form-item>
-                <a-input v-model="email" prefix-icon="user" placeholder="Email" class="input" />
+                <a-input v-model="username" @change="changeUsername" prefix-icon="user" placeholder="username"
+                    class="input" />
             </a-form-item>
             <a-form-item>
-                <a-input v-model="password" prefix-icon="lock" type="password" placeholder="Password" class="input" />
+                <a-input v-model="password" @change="changePassword" prefix-icon="lock" type="password"
+                    placeholder="Password" class="input" />
             </a-form-item>
             <a-form-item>
                 <div class="div-button">
@@ -25,28 +26,79 @@
   
 <script lang="ts">
 import logo from "@/logo.png";
+import { message } from "ant-design-vue";
+import jwtDecode from "jwt-decode";
+
+
+const runTimeConfig = useRuntimeConfig();
+
+
+
 export default {
     data() {
         return {
             title: "Login",
-            email: "",
+            username: "",
             password: "",
             logo: logo,
         };
     },
+    mounted() {
+        const token = localStorage.getItem('jwt')
+        if (token) {
+            try {
+                const decoded = jwtDecode(token)
+                console.log(decoded)
+                // this.user = decoded
+            } catch (err) {
+                // Handle invalid token
+            }
+        }
+    },
     methods: {
         async login() {
             // Call your login API here
-            try {
-                const response = await this.$axios.post("/api/login", {
-                    email: this.email,
-                    password: this.password,
-                });
-                // Redirect to home page
-                this.$router.push("/");
-            } catch (error) {
-                console.error(error);
-            }
+            console.log({
+                username: this.username,
+                password: this.password,
+            })
+
+            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/auth/login', {
+                method: "POST",
+                body: JSON.stringify(
+                    {
+                        username: this.username,
+                        password: this.password,
+                    }),
+            }).then((res) => {
+
+                console.log(res.data.value)
+                if (res.data.value !== null) {
+                    if (res.data.value.success) {
+                        localStorage.setItem("jwt", res.data.value.data.token)
+                        message.success("Login success")
+                        this.$router.push("/chat");
+                        return;
+                    } else {
+                        message.error(res.data.value.message)
+                        return;
+                    }
+                }
+
+                for (let i = 0; i < res.error.value.response._data.message.length; i++) {
+                    message.error(res.error.value.response._data.message[i])
+                }
+
+
+            })
+        },
+
+        changeUsername(e: any) {
+            this.username = e.target.value;
+        },
+
+        changePassword(e: any) {
+            this.password = e.target.value;
         },
     },
 };

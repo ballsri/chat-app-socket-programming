@@ -26,7 +26,7 @@
                 <div>
 
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
-                        placement="bottomRight">
+                        placement="bottomRight" @confirm="confirm" @cancel="cancel">
                         <a-button type="danger" class="button">
                             <LogoutOutlined />
                             Logout
@@ -52,20 +52,26 @@
 
         <div class="group-chats-container">
             <a-list bordered class="group-chat-list">
-                <a-list-item v-for="g in groups" :key="g.id">
-                    {{ g.name }}
+
+                <a-list-item v-for="(g, i) in groups" :key="g.id" :value="g.id">
+
+                    <div class="group-item" @click="changeGroup">
+
+                        {{ g.name }}
+                    </div>
+
                 </a-list-item>
             </a-list>
         </div>
         <div class="chat-window">
             <a-card title="Group Chat" class="chat-window-data">
                 <div class="data-message" ref="scroll">
-                    <div v-for="(message, i) in messages" :key="message.id">
+                    <div v-for="(message, i) in messages" :key="message.message.id">
                         <a-divider v-if="i != 0" />
                         <a-avatar size="large">
                             <UserOutlined />
                         </a-avatar>
-                        <p>{{ message.sender }}: {{ message.text }}</p>
+                        <p>{{ message.message.sender }}: {{ message.message.text }}</p>
                     </div>
                 </div>
                 <a-input ref="input" placeholder="Type a message..." v-model="newMessageText" @change="changeMessageText"
@@ -78,8 +84,15 @@
 <script lang="ts">
 // import icon
 import { UserOutlined, EditOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { message } from 'ant-design-vue';
+import jwtDecode from 'jwt-decode';
 const nuxtApp = useNuxtApp();
 
+const confirm = () => {
+    localStorage.removeItem('jwt');
+    nuxtApp.$router.push('/login');
+    message.error('Logged out successfully');
+};
 
 
 
@@ -106,18 +119,28 @@ export default {
                 { id: 3, name: "Group 3" },
             ],
             messages: [
-                { id: 1, sender: "User 1", text: "Hello" },
-                { id: 2, sender: "User 2", text: "Hi" },
-                { id: 3, sender: "User 1", text: "How are you?" },
+                { message: { id: 1, sender: "User 1", text: "Hello" }, group: 1, user: 'user1' },
+                { message: { id: 2, sender: "User 2", text: "Hi" }, group: 1, user: 'user1' },
+                { message: { id: 3, sender: "User 1", text: "How are you?" }, group: 1, user: 'user1' },
+
             ],
             activeGroupId: null,
+            activeUserId: null,
+            activeUsername: null,
             newMessageText: "",
             offsetTop: 320,
+            confirm: confirm,
         };
     },
 
     mounted() {
-        this.scrollToBottom();
+        // get user from local storage
+        let token: string | null = localStorage.getItem("jwt");
+        if (token) {
+            const user: any = jwtDecode(token);
+            this.activeUserId = user.sub;
+            this.activeUsername = user.username;
+        }
     },
 
     methods: {
@@ -125,15 +148,20 @@ export default {
             if (this.newMessageText === "") {
                 return;
             }
-            let message = {
+            let message: any = {
                 id: this.messages.length + 1,
-                sender: "User 1",
+                sender: this.activeUserId,
                 text: this.newMessageText,
             }
-            this.messages.push(message);
-            console.log(message);
+            let payload: any = {
+                message,
+                group: this.activeGroupId,
+                user: this.activeUserId
+            }
+            this.messages.push(payload);
+            console.log(payload);
 
-            nuxtApp.$io.emit('send_message', {message, group: 'group1', user: 'user1'});
+            nuxtApp.$io.emit('send_message', payload);
 
             this.newMessageText = "";
             this.$refs.input.stateValue = '';
@@ -141,26 +169,55 @@ export default {
                 this.scrollToBottom();
             });
         },
-        changeMessageText(e) {
+        changeMessageText(e: any) {
             this.newMessageText = e.target.value;
         },
         scrollToBottom() {
 
-            const msgContainer = this.$refs.scroll;
+            const msgContainer: any = this.$refs.scroll;
             msgContainer.scrollTop = msgContainer.scrollHeight;
-        }
-    },
+        },
+        changeGroup(e: any) {
+            nuxtApp.$io.emit('leaveRoom', this.activeGroupId);
 
-    watch: {
-        messages() {
-            this.scrollToBottom();
-        }
+            for (let i = 0; (i < e.target.parentNode.parentNode.children.length); i++) {
+                let element = e.target.parentNode.parentNode.children[i].children[0];
+                if (element !== e.target) {
+                    element.classList.remove('active');
+                    element.removeEventListener('click', this.changeGroup, true);
+
+                }
+            }
+            this.activeGroupId = e.target.parentNode.value;
+            e.target.classList.add('active');
+
+
+
+
+            nuxtApp.$io.emit('joinRoom', this.activeGroupId);
+        },
     },
 
     created() {
-        nuxtApp.$io.on('broadcast_message', (message : any) => {
-            this.messages.push(message);
+        nuxtApp.$io.on('broadcast_message', (message: any) => {
+            console.log(message);
+            if (message.group === this.activeGroupId && message.user !== this.activeUserId) {
+                this.messages.push(message);
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
+
+            }
         });
+        nuxtApp.$io.on('joinedRoom', (group: any) => {
+            this.activeGroupId = group;
+        });
+
+        nuxtApp.$io.on('leftRoom', () => {
+            this.activeGroupId = null;
+        });
+
+
     }
 
 
@@ -216,6 +273,38 @@ export default {
     height: 720px;
     overflow-y: scroll;
     background-color: #f0f2f5;
+
+    display: flex;
+    justify-content: center;
+
+}
+
+.group-item {
+    padding: 10px;
+    border-radius: 5px;
+    border: #f0f2f5;
+    cursor: pointer;
+    width: 250px;
+    display: flex;
+    justify-content: center;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+
+
+    background-color: #fff;
+}
+
+.group-item:hover {
+    background-color: #cfcfcf;
+}
+
+.group-item.active {
+    background-color: #cfcfcf;
+    pointer-events: none;
+    cursor: none;
+
 }
 
 .chat-window {
