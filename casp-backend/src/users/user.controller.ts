@@ -1,23 +1,22 @@
 import { Controller, Post, Get, Body } from '@nestjs/common';
 
 import { ResponseDto } from '../dtos/response.dto';
-import { GroupService } from './group.service';
+import { UserService } from './user.service';
 
-
-@Controller('api/v1/groups')
-export class GroupController {
-    constructor(private groupService: GroupService) { }
+@Controller('api/v1/users')
+export class UserController {
+    constructor(private userService: UserService) { }
 
     @Get('')
     async getAll() {
         try {
 
-            let groups = await this.groupService.getAllGroups();
+            let groups = await this.userService.getAllUsers();
 
 
             return new ResponseDto(
                 true,
-                "Get all groups Successful",
+                "Get all users Successful",
                 groups
             )
 

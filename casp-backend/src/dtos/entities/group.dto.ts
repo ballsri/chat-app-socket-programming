@@ -1,8 +1,8 @@
-import { IsNotEmpty, IsString } from '@nestjs/class-validator';
+import { IsNotEmpty, IsString, IsUUID } from '@nestjs/class-validator';
 
 export class GroupDto {
 
-    @IsString()
+    @IsUUID()
     id: string;
 
     @IsNotEmpty()

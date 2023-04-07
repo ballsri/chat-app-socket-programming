@@ -3,19 +3,23 @@
 
 
         <div class="user-profile">
-            <a-list bordered>
-                <a-list-item>
-                    <div>
-                        <a-avatar size="large">
-                            <UserOutlined />
-                        </a-avatar>
+            <a-list bordered class="user-profile-list">
+                <a-list-item class="profile-item">
+                    <div class="user-card-container">
+                        <div class="user-card">
 
+                            <a-avatar size="large">
+                                <UserOutlined />
+                            </a-avatar>
+                            <p class="user-name"> {{ activeName }}</p>
+                        </div>
                         <a-divider type="vertical" />
 
                     </div>
                 </a-list-item>
 
-                <div>
+
+                <div class="profile-item">
                     <a-button class="button">
                         <EditOutlined />
                         Edit Profile
@@ -23,7 +27,9 @@
                 </div>
 
 
-                <div>
+
+
+                <div class="profile-item">
 
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
                         placement="bottomRight" @confirm="confirm">
@@ -34,14 +40,17 @@
                     </a-popconfirm>
 
                 </div>
-
             </a-list>
         </div>
 
 
         <div class="users-list-container">
             <a-list bordered class="users-list">
-                <a-list-item v-for="user in users" :key="user.id">
+                <div class="user-online">
+                    <p> Current Online User: {{ numberOfUsers }} / {{ users.length+1 }}</p>
+                </div>
+                <a-list-item class="user-item" v-for="user in users" :key="user.id" :id="user.id" :name="user.name"
+                    @click="selectUserChat">
                     <a-avatar size="large">
                         <UserOutlined />
                     </a-avatar>
@@ -52,10 +61,16 @@
 
         <div class="group-chats-container">
             <a-list bordered class="group-chat-list">
+                <div class="group-item-container">
+                    <a-button class="group-item" @click="createGroup">
+                        <PlusOutlined />
+                        Create Group
+                    </a-button>
+                </div>
 
-                <a-list-item v-for="(g, i) in groups" :key="g.id" :value="g.id">
+                <a-list-item v-for="(g, i) in groups" :key="g.id" class="group-item-container">
 
-                    <div class="group-item" @click="changeGroup">
+                    <div class="group-item" @click="changeGroup" :value="g.id">
 
                         {{ g.name }}
                     </div>
@@ -64,18 +79,37 @@
             </a-list>
         </div>
         <div class="chat-window">
-            <a-card title="Group Chat" class="chat-window-data">
-                <div class="data-message" ref="scroll">
-                    <div v-for="(message, i) in messages" :key="message.message.id">
+            <a-card class="chat-window-container" :title="title">
+                <div class="chat-window-list" ref="scroll">
+                    <div v-if="activeGroupId != null" v-for="(message, i) in messages" :key="message.id" class="chat-data">
                         <a-divider v-if="i != 0" />
-                        <a-avatar size="large">
-                            <UserOutlined />
-                        </a-avatar>
-                        <p>{{ message.user }}: {{ message.message.text }}</p>
+                        <div v-if="activeUserId != message.user_id">
+                            <div class="chat-data-message">
+
+                                <a-avatar size="large">
+                                    <UserOutlined />
+                                </a-avatar>
+                                <p>{{ message.name }}: {{ message.text }}</p>
+                                <p>{{ new Date(message.sent_at).toLocaleString() }}</p>
+                            </div>
+                        </div>
+                        <div v-else>
+                            <div class="chat-data-message-self">
+
+                                <a-avatar size="large">
+                                    <UserOutlined />
+                                </a-avatar>
+                                <p>{{ message.name }}: {{ message.text }}</p>
+                                <p>{{ new Date(message.sent_at).toLocaleString() }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <a-input v-if="activeGroupId != null" ref="input" placeholder="Type a message..." v-model="newMessageText"
-                    @change="changeMessageText" @press-enter="sendMessage" />
+                <div class="chat-window-input">
+
+                    <a-input class="input" v-if="activeGroupId != null" ref="input" placeholder="Type a message..."
+                        v-model="newMessageText" @change="changeMessageText" @press-enter="sendMessage" type="text" />
+                </div>
             </a-card>
         </div>
     </div>
@@ -86,13 +120,19 @@
 import { UserOutlined, EditOutlined, LogoutOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import jwtDecode from 'jwt-decode';
-const nuxtApp = useNuxtApp();
+const nuxtApp: any = useNuxtApp();
+
+
+const runTimeConfig = useRuntimeConfig();
+
 
 const confirm = () => {
     localStorage.removeItem('jwt');
     nuxtApp.$router.push('/login');
     message.error('Logged out successfully');
 };
+
+
 
 
 
@@ -108,22 +148,16 @@ export default {
     data() {
         return {
             users: [
-                { id: 1, name: "User 1" },
-                { id: 2, name: "User 2" },
-                { id: 3, name: "User 3" },
-                { id: 4, name: "User 4" }
-            ],
-            groups: [
-                { id: 1, name: "Group 1" },
-                { id: 2, name: "Group 2" },
-                { id: 3, name: "Group 3" },
-            ],
-            messages: [
-                { message: { id: 1, text: "Hello", sent_at: new Date(), user_id : '1' }, group: 1, user: 'user1' },
-                { message: { id: 2, text: "Hi" , sent_at: new Date(), user_id: '2'}, group: 1, user: 'user2' },
-                { message: { id: 3, text: "How are you?", sent_at: new Date(), user_id: '1' }, group: 1, user: 'user1' },
 
             ],
+            groups: [
+
+            ],
+            messages: [
+            ],
+            numberOfUsers: 0,
+            numberOfUsersPerGroup: {},
+            title: "Select a group to start chatting",
             activeGroupId: null,
             activeUserId: null,
             activeUsername: null,
@@ -134,7 +168,7 @@ export default {
         };
     },
 
-    mounted() {
+    async mounted() {
         // get user from local storage
         let token: string | null = localStorage.getItem("jwt");
         if (token) {
@@ -143,10 +177,38 @@ export default {
             this.activeUsername = user.username;
             this.activeName = user.name;
         }
+
+
+        let data: any;
+        let pending: any;
+        // fetch all users
+        ({ data, pending } = await useFetch(`${runTimeConfig.baseURL}` + '/api/v1/users'))
+        if (pending) {
+            this.users = [];
+        }
+        if (data) {
+            // remove self from users list
+            this.users = data.value.data.filter((user: any) => user.id != this.activeUserId);
+
+        }
+
+        // fetch all groups
+        ({ data, pending } = await useFetch(`${runTimeConfig.baseURL}` + '/api/v1/groups'))
+        if (pending) {
+            this.groups = [];
+        }
+        if (data) {
+
+            this.groups = data.value.data;
+        }
+
+
+
     },
 
     methods: {
         sendMessage() {
+
             if (this.newMessageText === "") {
                 return;
             }
@@ -154,58 +216,109 @@ export default {
                 id: this.messages.length + 1,
                 text: this.newMessageText,
                 sent_at: new Date(),
-                user_id: this.activeUserId
+                user_id: this.activeUserId,
+                name: this.activeName
             }
             let payload: any = {
                 message,
                 group: this.activeGroupId,
-                user: this.activeName
-            }
-            this.messages.push(payload);
-            console.log(payload);
 
+            }
+            this.messages.push(payload.message);
             nuxtApp.$io.emit('send_message', payload);
 
             this.newMessageText = "";
-            this.$refs.input.stateValue = '';
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
+            (this.$refs as any).input.stateValue = '';
+
         },
         changeMessageText(e: any) {
             this.newMessageText = e.target.value;
         },
         scrollToBottom() {
-
             const msgContainer: any = this.$refs.scroll;
             msgContainer.scrollTop = msgContainer.scrollHeight;
         },
         changeGroup(e: any) {
-            nuxtApp.$io.emit('leaveRoom', this.activeGroupId);
 
-            for (let i = 0; (i < e.target.parentNode.parentNode.children.length); i++) {
-                let element = e.target.parentNode.parentNode.children[i].children[0];
-                if (element !== e.target) {
-                    element.classList.remove('active');
-                    element.removeEventListener('click', this.changeGroup, true);
-
-                }
-            }
-            this.activeGroupId = e.target.parentNode.value;
+            this.leaveGroupChat(e)
+            this.activeGroupId = e.target.attributes.value.value;
+            this.title = e.target.innerText;
             e.target.classList.add('active');
-
-            nuxtApp.$io.emit('joinRoom', this.activeGroupId);
+            this.changeMessageFromGroupId(this.activeGroupId);
+            nuxtApp.$io.emit('joinRoom', this.activeGroupId)
         },
+        async changeMessageFromGroupId(id: string) {
+            const { data, pending }: any = await useFetch(`${runTimeConfig.baseURL}` + '/api/v1/messages/' + id)
+            if (pending) {
+                this.messages = [];
+            }
+            if (data) {
+                this.messages = data.value.data;
+                this.messages.sort((a: any, b: any) => {
+                    return new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime();
+                });
+            }
+        },
+        async changeMessageFromUserChatId(id: string) {
+            const { data, pending }: any = await useFetch(`${runTimeConfig.baseURL}` + '/api/v1/messages/' + id)
+            if (pending) {
+                this.messages = [];
+            }
+            if (data) {
+                this.messages = data.value.data;
+                this.messages.sort((a: any, b: any) => {
+                    return new Date(a.sent_at).getTime() - new Date(b.sent_at).getTime();
+                });
+            }
+        },
+        leaveGroupChat(e: any) {
+
+            this.title = "Select a group to start chatting";
+            nuxtApp.$io.emit('leaveRoom', this.activeGroupId);
+            this.clearSelection();
+        },
+
+        clearSelection() {
+            const active = document.getElementsByClassName('active');
+            for (let i = 0; i < active.length; i++) {
+                active[i].classList.remove('active');
+            }
+
+
+        },
+        async selectUserChat(e: any) {
+            this.clearSelection();
+            this.title = e.target.attributes.name.value;
+            const chatId = this.getUserChatId(e.target.attributes.id.value)
+            this.activeGroupId = chatId;
+            e.target.classList.add('active');
+            await this.changeMessageFromUserChatId(chatId);
+            nuxtApp.$io.emit('joinRoom', this.activeGroupId)
+        },
+        getUserChatId(id: string) {
+            let chatId: string = "";
+            if (this.activeUserId < id) {
+                chatId = this.activeUserId + id;
+            } else {
+                chatId = id + this.activeUserId;
+            }
+            return chatId;
+        },
+        createGroup() {
+            this.$router.push('/create-group');
+        },
+
+        
+
+
     },
 
     created() {
         nuxtApp.$io.on('broadcast_message', (message: any) => {
-            console.log(message);
+            console.log("receive", message);
             if (message.group === this.activeGroupId && message.message.user_id !== this.activeUserId) {
-                this.messages.push(message);
-                this.$nextTick(() => {
-                    this.scrollToBottom();
-                });
+                this.messages.push(message.message);
+
 
             }
         });
@@ -214,10 +327,24 @@ export default {
         });
 
         nuxtApp.$io.on('leftRoom', () => {
+
             this.activeGroupId = null;
         });
 
+        nuxtApp.$io.on('numberOfUsers', (data: any) => {
+            this.numberOfUsers = data.numberOfUsers;
+            this.numberOfUsersPerGroup = data.numberOfUsersPerGroup;
+        });
 
+
+    },
+
+    watch: {
+        messages: function () {
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+        }
     }
 
 
@@ -225,101 +352,6 @@ export default {
 </script>
   
 <style scoped>
-.chat-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr 3fr;
-    grid-template-rows: 1fr 2fr 2fr;
-    height: 100%;
-}
-
-.user-profile {
-    grid-column: 1;
-    grid-row: 1;
-
-    padding: 20px;
-    width: 300px;
-}
-
-.button {
-    width: 100%;
-}
-
-
-
-.users-list-container {
-    grid-column: 1;
-    grid-row: 2 / 4;
-
-
-    width: 300px;
-    padding: 20px;
-
-}
-
-.users-list {
-    height: 550px;
-    overflow-y: scroll;
-}
-
-.group-chats-container {
-    grid-column: 2;
-    grid-row: 1 / 4;
-
-    width: 300px;
-    padding: 20px;
-}
-
-.group-chat-list {
-    height: 720px;
-    overflow-y: scroll;
-    background-color: #f0f2f5;
-
-    display: flex;
-    justify-content: center;
-
-}
-
-.group-item {
-    padding: 10px;
-    border-radius: 5px;
-    border: #f0f2f5;
-    cursor: pointer;
-    width: 250px;
-    display: flex;
-    justify-content: center;
-
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    user-select: none;
-
-
-    background-color: #fff;
-}
-
-.group-item:hover {
-    background-color: #cfcfcf;
-}
-
-.group-item.active {
-    background-color: #cfcfcf;
-    pointer-events: none;
-    cursor: none;
-
-}
-
-.chat-window {
-    grid-column: 3;
-    grid-row: 1 / 4;
-    padding: 20px;
-}
-
-.chat-window-data {
-    background-color: #f0f2f5;
-}
-
-.data-message {
-    height: 600px;
-    overflow-y: scroll;
-}
+@import '~/public/css/chat.css';
 </style>
   

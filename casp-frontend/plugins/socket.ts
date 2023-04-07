@@ -11,7 +11,6 @@ export default defineNuxtPlugin( () => {
   return {
     provide: {
       io: socket,
-      hello: (msg:string) => 'Hello ' + msg + '!'
     }
   }
 })

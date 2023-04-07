@@ -21,6 +21,7 @@ declare module '@vue/runtime-core' {
     APopconfirm: typeof import('ant-design-vue/es')['Popconfirm']
     EditOutlined: typeof import('@ant-design/icons-vue')['EditOutlined']
     LogoutOutlined: typeof import('@ant-design/icons-vue')['LogoutOutlined']
+    PlusOutlined: typeof import('@ant-design/icons-vue')['PlusOutlined']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     UserOutlined: typeof import('@ant-design/icons-vue')['UserOutlined']
