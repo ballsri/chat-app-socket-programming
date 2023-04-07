@@ -39,11 +39,11 @@ export default {
     methods: {
         async CreateGroup() {
 
-            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/group/create', {
+            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/groups/create', {
                 method: "POST",
                 body: JSON.stringify(
                     {
-                        group_name: this.groupName,
+                        name: this.groupName,
                     }),
             }).then((res) => {
 
@@ -59,9 +59,8 @@ export default {
                     }
                 }
 
-                for (let i = 0; i < res.error.value.response._data.message.length; i++) {
-                    message.error(res.error.value.response._data.message[i])
-                }
+                message.error(res.error.value.response._data.message)
+
 
 
             })

@@ -6,7 +6,7 @@ import { Server } from 'socket.io';
 const httpServer = require('http').createServer();
 const io = new Server(httpServer, { cors: { origin: process.env.FRONTEND_URL, credentials: true, allowedHeaders: ['Content-Type', 'Authorization'] } });
 
-const pubClient = createClient({ url: process.env.REDIS_URL });
+const pubClient = createClient({ url: process.env.SOCKET_REDIS_URL });
 const subClient = pubClient.duplicate();
 
 Promise.all([pubClient.connect(), subClient.connect()]).then(() => {

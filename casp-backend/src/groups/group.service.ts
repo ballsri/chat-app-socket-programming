@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Group } from './group.entity';
 import { GroupDto } from '../dtos/entities/group.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 
 export class GroupService{
@@ -25,8 +26,9 @@ export class GroupService{
     return group;
   }
 
-  async creategroup(groupDto: GroupDto): Promise<Group> {
-    const group = new Group();
+  async createGroup(groupDto: GroupDto): Promise<Group> {
+      const group = new Group();
+      group.id = uuidv4();
     group.name = groupDto.name;
 
     return await this.groupRepository.save(group);

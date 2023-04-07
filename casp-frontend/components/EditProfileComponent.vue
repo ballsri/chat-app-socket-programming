@@ -1,29 +1,26 @@
 <template>
-    <div class="register-container">
+    <div class="edit-container">
         <a-avatar class="logo" shape="square" size="large" :src="logo"></a-avatar>
         <div class="title">
             {{ title }}
         </div>
-        <a-form class="register-form" @submit.prevent="register">
+        <a-form class="edit-form" @submit.prevent="edit">
             <a-form-item>
-                <a-input v-model="name" prefix-icon="name" @change="onChangeName" placeholder="Name" class="input" />
+                <div>
+                    User : {{ $route.params.id }}
+                </div>
             </a-form-item>
             <a-form-item>
-                <a-input v-model="username" prefix-icon="username" @change="onChangeUsername" placeholder="Username"
-                    class="input" />
+                <a-input v-model="name" prefix-icon="name" @change="onChangeName" placeholder="Name" class="input" />
             </a-form-item>
             <a-form-item>
                 <a-input v-model="password" prefix-icon="lock" @change="onChangePassword" type="password"
                     placeholder="Password" class="input" />
             </a-form-item>
             <a-form-item>
-                <a-input v-model="confirm_password" @change="onChangeConfirmPassword" prefix-icon="lock" type="password"
-                    placeholder="Confirm Password" class="input" />
-            </a-form-item>
-            <a-form-item>
                 <div class="div-button">
-                    <a-button type="primary" @click="$router.push('/')" class="button">Back</a-button>
-                    <a-button type="primary" html-type="submit" class="button">Register</a-button>
+                    <a-button type="primary" @click="$router.push('/chat')" class="button">Back</a-button>
+                    <a-button type="primary" html-type="submit" class="button">Edit</a-button>
                 </div>
             </a-form-item>
         </a-form>
@@ -39,19 +36,18 @@ const runTimeConfig = useRuntimeConfig();
 export default {
     data() {
         return {
-            title: "Register",
+            title: "Edit User",
             name: "",
             username: "",
             password: "",
-            confirm_password: "",
             logo: logo
         };
     },
     methods: {
-        async register() {
-            // Call your register API here
+        async edit() {
+            // Call your edit API here
 
-            useFetch(runTimeConfig.public.baseURL + "/api/v1/auth/register", {
+            useFetch(runTimeConfig.public.baseURL + "/api/v1/users/edit/" + this.$route.params.id, {
                 method: "POST",
                 body: JSON.stringify(
                     {
@@ -67,7 +63,7 @@ export default {
                 if (res.data.value !== null) {
                     if (res.data.value.success) {
 
-                        message.success("Register success")
+                        message.success("edit success")
                         this.$router.push("/login");
                         return;
                     } else {
@@ -76,25 +72,17 @@ export default {
                     }
                 }
 
-                for (let i = 0; i < res.error.value.response._data.message.length; i++) {
-                    message.error(res.error.value.response._data.message[i])
-                }
+                message.error(res.error.value.response._data.message)
+
             })
         },
-        onChangeUsername(e: any) {
-            this.username = e.target.value;
-        },
+
 
         onChangePassword(e: any) {
             this.password = e.target.value;
         },
 
-        onChangeConfirmPassword(e: any) {
-            this.confirm_password = e.target.value;
-        },
-
         onChangeName(e: any) {
-            console.log(e)
             this.name = e.target.value;
         }
     },
@@ -108,7 +96,7 @@ export default {
     margin-bottom: 16px;
 }
 
-.register-container {
+.edit-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -125,7 +113,7 @@ export default {
     width: 100%;
 }
 
-.register-form {
+.edit-form {
     max-width: 300px;
     width: 100%;
 }

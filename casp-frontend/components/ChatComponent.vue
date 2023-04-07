@@ -1,7 +1,6 @@
 <template>
     <div class="chat-container">
 
-
         <div class="user-profile">
             <a-list bordered class="user-profile-list">
                 <a-list-item class="profile-item">
@@ -20,7 +19,7 @@
 
 
                 <div class="profile-item">
-                    <a-button class="button">
+                    <a-button class="button" @click="editProfile">
                         <EditOutlined />
                         Edit Profile
                     </a-button>
@@ -32,7 +31,7 @@
                 <div class="profile-item">
 
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
-                        placement="bottomRight" @confirm="confirm">
+                        placement="bottomRight" @confirm="logout">
                         <a-button type="danger" class="button">
                             <LogoutOutlined />
                             Logout
@@ -47,7 +46,7 @@
         <div class="users-list-container">
             <a-list bordered class="users-list">
                 <div class="user-online">
-                    <p> Current Online User: {{ numberOfUsers }} / {{ users.length+1 }}</p>
+                    <p> Current Online Guests: {{ numberOfUsers }}</p>
                 </div>
                 <a-list-item class="user-item" v-for="user in users" :key="user.id" :id="user.id" :name="user.name"
                     @click="selectUserChat">
@@ -84,23 +83,32 @@
                     <div v-if="activeGroupId != null" v-for="(message, i) in messages" :key="message.id" class="chat-data">
                         <a-divider v-if="i != 0" />
                         <div v-if="activeUserId != message.user_id">
-                            <div class="chat-data-message">
+                            <div class="chat-data-message-container">
 
-                                <a-avatar size="large">
-                                    <UserOutlined />
-                                </a-avatar>
-                                <p>{{ message.name }}: {{ message.text }}</p>
-                                <p>{{ new Date(message.sent_at).toLocaleString() }}</p>
+                                <div class="chat-data-message">
+                                    <a-avatar size="large" class="chat-data-message-logo">
+                                        <UserOutlined />
+                                    </a-avatar>
+                                    <p class="chat-data-message-username">{{ message.name }}</p>
+                                    <p class="chat-data-message-text"> {{ message.text }}</p>
+                                    <a-divider class="chat-data-message-line" type="vertical" />
+                                    <p class="chat-data-message-date">{{ new Date(message.sent_at).toLocaleString() }}</p>
+                                </div>
                             </div>
                         </div>
                         <div v-else>
-                            <div class="chat-data-message-self">
+                            <div class="chat-data-message-container-self">
 
-                                <a-avatar size="large">
-                                    <UserOutlined />
-                                </a-avatar>
-                                <p>{{ message.name }}: {{ message.text }}</p>
-                                <p>{{ new Date(message.sent_at).toLocaleString() }}</p>
+                                <div class="chat-data-message-self">
+                                    <a-avatar class="chat-data-message-self-logo" size="large">
+                                        <UserOutlined />
+                                    </a-avatar>
+                                    <p class="chat-data-message-self-username">{{ message.name }}</p>
+                                    <p class="chat-data-message-self-text"> {{ message.text }}</p>
+                                    <a-divider class="chat-data-message-self-line" type="vertical" />
+                                    <p class="chat-data-message-self-date">{{ new Date(message.sent_at).toLocaleString() }}
+                                    </p>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -120,17 +128,18 @@
 import { UserOutlined, EditOutlined, LogoutOutlined } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import jwtDecode from 'jwt-decode';
+
 const nuxtApp: any = useNuxtApp();
-
-
 const runTimeConfig = useRuntimeConfig();
 
 
-const confirm = () => {
+const logout = () => {
     localStorage.removeItem('jwt');
+    nuxtApp.$io.emit('leaveChat');
     nuxtApp.$router.push('/login');
     message.error('Logged out successfully');
 };
+
 
 
 
@@ -164,11 +173,14 @@ export default {
             activeName: null,
             newMessageText: "",
             offsetTop: 320,
-            confirm: confirm,
+            logout: logout,
         };
     },
 
     async mounted() {
+
+        nuxtApp.$io.emit('numberOfUsers');
+
         // get user from local storage
         let token: string | null = localStorage.getItem("jwt");
         if (token) {
@@ -189,6 +201,8 @@ export default {
         if (data) {
             // remove self from users list
             this.users = data.value.data.filter((user: any) => user.id != this.activeUserId);
+            this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
+                
 
         }
 
@@ -200,6 +214,7 @@ export default {
         if (data) {
 
             this.groups = data.value.data;
+            this.groups.sort((a: any, b: any) => a.name.localeCompare(b.name));
         }
 
 
@@ -228,7 +243,10 @@ export default {
             nuxtApp.$io.emit('send_message', payload);
 
             this.newMessageText = "";
-            (this.$refs as any).input.stateValue = '';
+            this.$refs.input.stateValue = '';
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
 
         },
         changeMessageText(e: any) {
@@ -240,7 +258,7 @@ export default {
         },
         changeGroup(e: any) {
 
-            this.leaveGroupChat(e)
+            this.leaveGroupChat();
             this.activeGroupId = e.target.attributes.value.value;
             this.title = e.target.innerText;
             e.target.classList.add('active');
@@ -271,7 +289,7 @@ export default {
                 });
             }
         },
-        leaveGroupChat(e: any) {
+        leaveGroupChat() {
 
             this.title = "Select a group to start chatting";
             nuxtApp.$io.emit('leaveRoom', this.activeGroupId);
@@ -305,12 +323,27 @@ export default {
             return chatId;
         },
         createGroup() {
+            this.leaveGroupChat();
             this.$router.push('/create-group');
         },
+        editProfile() {
 
-        
+            this.leaveGroupChat();
+            this.$router.push('/user/' + this.activeUserId);
+        },
 
 
+
+
+
+    },
+
+    watch: {
+        messages: function () {
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+        }
     },
 
     created() {
@@ -318,7 +351,9 @@ export default {
             console.log("receive", message);
             if (message.group === this.activeGroupId && message.message.user_id !== this.activeUserId) {
                 this.messages.push(message.message);
-
+                this.$nextTick(() => {
+                    this.scrollToBottom();
+                });
 
             }
         });
@@ -336,15 +371,6 @@ export default {
             this.numberOfUsersPerGroup = data.numberOfUsersPerGroup;
         });
 
-
-    },
-
-    watch: {
-        messages: function () {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        }
     }
 
 

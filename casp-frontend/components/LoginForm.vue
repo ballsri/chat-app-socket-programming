@@ -28,8 +28,9 @@
 import logo from "@/logo.png";
 import { message } from "ant-design-vue";
 import jwtDecode from "jwt-decode";
+import { useNuxtApp } from "nuxt/app";
 
-
+const nuxtApp = useNuxtApp();
 const runTimeConfig = useRuntimeConfig();
 
 

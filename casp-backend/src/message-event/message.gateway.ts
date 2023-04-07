@@ -21,7 +21,7 @@ export class MessageGateway implements OnModuleInit {
   public numberOfUsersPerGroup = {};
 
   // initiate number of user per group
-  async onModuleInit() : Promise<void> {
+  async onModuleInit(): Promise<void> {
     const groups = await this.groupService.getAllGroups();
     groups.forEach((group) => {
       this.numberOfUsersPerGroup[group.id] = 0;
@@ -111,6 +111,7 @@ export class MessageGateway implements OnModuleInit {
 
     client.emit('numberOfUsers', numberOfUser);
   }
+
 
   public handleConnection(client: any, ...args: any[]): any {
     console.log('Client connected:', client.id);
