@@ -55,4 +55,30 @@ export class UserService {
 
     return userFound;
   }
+
+  async blockUser(from_id: string, to_id: string): Promise<User[]> {
+    const fromUser = await this.userRepository.findOneBy({ id: from_id });
+    const toUser = await this.userRepository.findOneBy({ id: to_id });
+    if(fromUser.block_list.includes(to_id) == false){
+      fromUser.block_list.push(to_id)
+      toUser.banned_list.push(from_id)
+    }
+    this.userRepository.save(fromUser)
+    this.userRepository.save(toUser)
+    const response = [fromUser,toUser];
+    return response;
+  }
+
+  async unblockUser(from_id: string, to_id: string): Promise<User[]> {
+    const fromUser = await this.userRepository.findOneBy({ id: from_id });
+    const toUser = await this.userRepository.findOneBy({ id: to_id });
+    if(fromUser.block_list.includes(to_id)){
+      fromUser.block_list = fromUser.block_list.filter(id => id !== to_id);
+      toUser.banned_list = toUser.banned_list.filter(id => id !== from_id);
+    }
+    this.userRepository.save(fromUser)
+    this.userRepository.save(toUser)
+    const response = [fromUser,toUser];
+    return response;
+  }
 }

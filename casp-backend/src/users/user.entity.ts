@@ -15,4 +15,10 @@ export class User {
     @Column()
     name: string;
 
+    @Column({ type: 'simple-array', nullable: true })
+    block_list: string[];
+
+    @Column({ type: 'simple-array', nullable: true })
+    banned_list: string[];
+
 }

@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Put } from '@nestjs/common';
 
 import { ResponseDto } from '../dtos/response.dto';
 import { UserService } from './user.service';
@@ -43,6 +43,48 @@ export class UserController {
                 true,
                 "Edit user Successful",
                 user
+            )
+
+        } catch (error) {
+            return new ResponseDto(
+                false,
+                error.message,
+                null
+            );
+
+        }
+    }
+
+    @Put('/block/:from_id/:to_id')
+    async blockUser(@Param() params) {
+        try {
+            let response = await this.userService.blockUser(params.from_id, params.to_id);
+
+            return new ResponseDto(
+                true,
+                "Block user Successful",
+                response
+            )
+
+        } catch (error) {
+            return new ResponseDto(
+                false,
+                error.message,
+                null
+            );
+
+        }
+    }
+
+    @Put('/unblock/:from_id/:to_id')
+    async unblockUser(@Param() params) {
+        try {
+            let response = await this.userService.unblockUser(params.from_id, params.to_id);
+
+            return new ResponseDto(
+                true,
+                "Unblock user Successful",
+                response
             )
 
         } catch (error) {
