@@ -29,7 +29,6 @@
 
 
                 <div class="profile-item">
-
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
                         placement="bottomRight" @confirm="logout">
                         <a-button type="danger" class="button">
@@ -37,6 +36,7 @@
                             Logout
                         </a-button>
                     </a-popconfirm>
+
 
                 </div>
             </a-list>
@@ -49,11 +49,18 @@
                     <p> Current Online Guests: {{ numberOfUsers }}</p>
                 </div>
                 <a-list-item class="user-item" v-for="user in users" :key="user.id" :id="user.id" :name="user.name"
-                    @click="selectUserChat">
+                    @click="selectUserChat($event ,user.name, user.id)">
                     <a-avatar size="large">
                         <UserOutlined />
                     </a-avatar>
-                    {{ user.name }}
+                    <p>{{ user.name }}</p>
+                    <!-- if the user name is not in this.favorite, display plus circle outlined -->
+                    <!-- else display minus circle outlined -->
+                    <div style="display: flex; gap: 3ea; font-size: 15px;">
+                        <plus-circle-outlined v-if="!favorite.includes(user.name)" v-on:click.stop="addFavorite(user.name)"/>
+                        <minus-circle-outlined v-else type="minus-circle-outlined" v-on:click.stop="removeFavorite(user.name)"/>
+                    </div>
+
                 </a-list-item>
             </a-list>
         </div>
@@ -125,7 +132,7 @@
   
 <script lang="ts">
 // import icon
-import { UserOutlined, EditOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { UserOutlined, EditOutlined, LogoutOutlined, CiCircleFilled } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import jwtDecode from 'jwt-decode';
 
@@ -148,14 +155,15 @@ const logout = () => {
 export default {
 
     components: {
-        UserOutlined,
-        EditOutlined,
-        LogoutOutlined,
-
-    },
+    UserOutlined,
+    EditOutlined,
+    LogoutOutlined,
+    CiCircleFilled
+},
 
     data() {
         return {
+            favorite: [],
             users: [
 
             ],
@@ -201,8 +209,11 @@ export default {
         if (data) {
             // remove self from users list
             this.users = data.value.data.filter((user: any) => user.id != this.activeUserId);
-            this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
-                
+            let activeUser = data.value.data.find((user: any) => user.id == this.activeUserId);
+            console.log(activeUser.favorite);
+            this.favorite = activeUser.favorite;
+            // this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
+            this.sortUsers();
 
         }
 
@@ -222,6 +233,24 @@ export default {
     },
 
     methods: {
+        sortUsers(){
+            // favorite users first (identify by favorite array which contains user name)
+            // if both users are favorite, sort by name
+            this.users.sort((a: any, b: any) => {
+                if (this.favorite.includes(a.name) && this.favorite.includes(b.name)) {
+                    return a.name.localeCompare(b.name);
+                }
+                else if (this.favorite.includes(a.name)) {
+                    return -1;
+                }
+                else if (this.favorite.includes(b.name)) {
+                    return 1;
+                }
+                else {
+                    return a.name.localeCompare(b.name);
+                }
+            });
+        },
         sendMessage() {
 
             if (this.newMessageText === "") {
@@ -303,11 +332,13 @@ export default {
             }
 
 
+
         },
-        async selectUserChat(e: any) {
+        async selectUserChat(e:any, uname: string, uid: string) {
+            // console.log("clicked")
             this.clearSelection();
-            this.title = e.target.attributes.name.value;
-            const chatId = this.getUserChatId(e.target.attributes.id.value)
+            this.title = uname
+            const chatId = this.getUserChatId(uid)
             this.activeGroupId = chatId;
             e.target.classList.add('active');
             await this.changeMessageFromUserChatId(chatId);
@@ -331,6 +362,53 @@ export default {
             this.leaveGroupChat();
             this.$router.push('/user/' + this.activeUserId);
         },
+        async addFavorite(name: string) {
+            // console.log(name)
+            // create new array to avoid vue reactivity issue
+            let newFavorite = [...this.favorite];
+            newFavorite.push(name);
+            await this.editFavoriteCommit(newFavorite)
+            // console.log(this.favorite, 'caller')
+        },
+        async removeFavorite(name: string) {
+            // console.log(name)
+            // create new array to avoid vue reactivity issue
+            let newFavorite = [...this.favorite];
+            newFavorite = newFavorite.filter((item) => item !== name);
+            await this.editFavoriteCommit(newFavorite)
+            // console.log(this.favorite, 'caller')
+        },
+        async editFavoriteCommit(fav_list: Array<string>) {
+            // console.log(this.favorite, "before edit")
+            useFetch(runTimeConfig.public.baseURL + "/api/v1/users/edit/" + this.activeUserId + "/favorite", {
+                method: "PUT",
+                body: JSON.stringify(
+                    {
+                        favorite: fav_list
+                    }
+                )
+            }).then((res) => {
+
+                console.log(res.data.value)
+                if (res.data.value !== null) {
+                    if (res.data.value?.success) {
+                        // console.log(res.data)
+                        this.favorite = res.data.value?.data.favorite;
+                        this.sortUsers();
+                        message.success("edit user's favorite success")
+                        // console.log(this.favorite, "favorite")
+                        return;
+                    } else {
+                        message.error(res.data.value?.message)
+                        return;
+                    }
+                }
+
+                message.error(res.error.value?.response?._data.message)
+
+            })
+        }
+        
 
 
 

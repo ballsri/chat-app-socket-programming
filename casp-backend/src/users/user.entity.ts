@@ -15,4 +15,7 @@ export class User {
     @Column()
     name: string;
 
+    @Column("text", { array: true , default: []})
+    favorite: string[];
+
 }

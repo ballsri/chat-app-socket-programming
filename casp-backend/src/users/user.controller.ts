@@ -1,4 +1,6 @@
-import { Controller, Post, Get, Body, Param } from '@nestjs/common';
+/* eslint-disable prefer-const */
+/* eslint-disable prettier/prettier */
+import { Controller, Post, Get, Body, Param, Put } from '@nestjs/common';
 
 import { ResponseDto } from '../dtos/response.dto';
 import { UserService } from './user.service';
@@ -13,6 +15,7 @@ export class UserController {
         try {
 
             let groups = await this.userService.getAllUsers();
+            console.log(groups);
 
 
             return new ResponseDto(
@@ -55,4 +58,28 @@ export class UserController {
         }
     }
 
+    @Put('/edit/:id/favorite')
+    async editFavorite(@Body() data: any, @Param() params) {
+        let userDto = await this.userService.getUserById(params.id);
+        userDto.favorite = data.favorite;
+        console.log(userDto);
+
+        try {
+            let user = await this.userService.editFavorite(params.id, userDto);
+
+            return new ResponseDto(
+                true,
+                "Edit user's favorite Successful",
+                user
+            )
+            
+        } catch (error) {
+            return new ResponseDto(
+                false,
+                error.message,
+                null
+            );
+
+        }
+    }
 }
