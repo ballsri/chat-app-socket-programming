@@ -97,8 +97,4 @@ export class UserController {
 
         }
     }
-<<<<<<< HEAD
-
-=======
->>>>>>> favorite
 }

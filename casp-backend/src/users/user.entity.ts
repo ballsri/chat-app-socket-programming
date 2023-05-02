@@ -15,15 +15,13 @@ export class User {
     @Column()
     name: string;
 
-<<<<<<< HEAD
     @Column({ type: 'simple-array', nullable: true })
     block_list: string[];
 
     @Column({ type: 'simple-array', nullable: true })
     banned_list: string[];
-=======
-    @Column("text", { array: true , default: []})
+
+    @Column("text", { array: true, default: [] })
     favorite: string[];
->>>>>>> favorite
 
 }

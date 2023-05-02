@@ -351,10 +351,12 @@ export default {
         async banUser(id: any){
             console.log(this.activeUserId)
             console.log(id)
-            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/users/block/' + this.activeUserId + "/"+ id, {
-                method: "PUT"
+            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/users/block/' + this.activeUserId + "/"+ id,{
+                method: "PUT",
+                body: JSON.stringify(
+                    {
+                    }),
             }).then((res) => {
-                console.log(res.data.value)
                 if (res.data.value !== null) {
                     if (res.data.value.success) {
                         message.success("Block Success")
