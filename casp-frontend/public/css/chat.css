@@ -66,6 +66,7 @@
 
   .users-list {
     overflow-y: scroll;
+    overflow: hidden;
     height: 100%;
   }
 
@@ -638,3 +639,21 @@
     overflow-y: scroll;
   }
 }
+
+
+.flex{
+  display: flex;
+}
+
+.flex-row{
+  flex-direction: row;
+}
+
+.content-center{
+  justify-content: center;
+}
+
+.item-center{
+  align-items: center;
+}
+

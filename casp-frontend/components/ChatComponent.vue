@@ -50,10 +50,24 @@
                 </div>
                 <a-list-item class="user-item" v-for="user in users" :key="user.id" :id="user.id" :name="user.name"
                     @click="selectUserChat">
-                    <a-avatar size="large">
-                        <UserOutlined />
-                    </a-avatar>
-                    {{ user.name }}
+                    <div class="flex flex-row content-center item-center" style="gap:10px">
+                        <div class="flex">
+                            <a-avatar size="large">
+                                <UserOutlined />
+                            </a-avatar>
+                        </div>
+                        <div class="flex">
+                            {{ user.name }}
+                        </div>
+                        <div class="flex">
+                            <!-- <ion-icon name="heart"></ion-icon> -->
+                            <button>ban</button>
+                        </div>
+                        <div class="flex">
+                            <!-- <ion-icon name="heart"></ion-icon> -->
+                            <button>favorite</button>
+                        </div>
+                    </div>
                 </a-list-item>
             </a-list>
         </div>
@@ -122,6 +136,8 @@
         </div>
     </div>
 </template>
+<!-- <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script> -->
   
 <script lang="ts">
 // import icon

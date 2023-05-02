@@ -13,4 +13,3 @@ import ChatComponent from '~/components/ChatComponent.vue';
       components: { ChatComponent }
   }
   </script>
-  
