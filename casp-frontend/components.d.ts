@@ -24,6 +24,7 @@ declare module '@vue/runtime-core' {
     EditFavoriteOutlined: typeof import('@ant-design/icons-vue')['EditFavoriteOutlined']
     EditOutlined: typeof import('@ant-design/icons-vue')['EditOutlined']
     LogoutOutlined: typeof import('@ant-design/icons-vue')['LogoutOutlined']
+    MinusCircleOutlined: typeof import('@ant-design/icons-vue')['MinusCircleOutlined']
     PlusCircleOutlined: typeof import('@ant-design/icons-vue')['PlusCircleOutlined']
     PlusOutlined: typeof import('@ant-design/icons-vue')['PlusOutlined']
     RouterLink: typeof import('vue-router')['RouterLink']
