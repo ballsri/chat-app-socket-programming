@@ -24,12 +24,15 @@
                         Edit Profile
                     </a-button>
                 </div>
+                <a-button class="button" @click="editFavorite">
+                    <UserOutlined/>
+                    Favorites
+                </a-button>
 
 
 
 
                 <div class="profile-item">
-
                     <a-popconfirm title="Are you sure you want to log out?" ok-text="Yes" cancel-text="No"
                         placement="bottomRight" @confirm="logout">
                         <a-button type="danger" class="button">
@@ -37,6 +40,7 @@
                             Logout
                         </a-button>
                     </a-popconfirm>
+
 
                 </div>
             </a-list>
@@ -49,25 +53,12 @@
                     <p> Current Online Guests: {{ numberOfUsers }}</p>
                 </div>
                 <a-list-item class="user-item" v-for="user in users" :key="user.id" :id="user.id" :name="user.name"
-                    @click="selectUserChat">
-                    <div class="flex flex-row content-center item-center" style="gap:10px">
-                        <div class="flex">
-                            <a-avatar size="large">
-                                <UserOutlined />
-                            </a-avatar>
-                        </div>
-                        <div class="flex">
-                            {{ user.name }}
-                        </div>
-                        <div class="flex">
-                            <!-- <ion-icon name="heart"></ion-icon> -->
-                            <button>ban</button>
-                        </div>
-                        <div class="flex">
-                            <!-- <ion-icon name="heart"></ion-icon> -->
-                            <button>favorite</button>
-                        </div>
-                    </div>
+                    @click="selectUserChat($event ,user.name, user.id)">
+                    <a-avatar size="large">
+                        <UserOutlined />
+                    </a-avatar>
+                    {{ user.name }}
+                    <plus-circle-outlined v-on:click.stop="addFavorite(user.name)" />
                 </a-list-item>
             </a-list>
         </div>
@@ -141,7 +132,7 @@
   
 <script lang="ts">
 // import icon
-import { UserOutlined, EditOutlined, LogoutOutlined } from '@ant-design/icons-vue';
+import { UserOutlined, EditOutlined, LogoutOutlined, CiCircleFilled } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import jwtDecode from 'jwt-decode';
 
@@ -164,11 +155,11 @@ const logout = () => {
 export default {
 
     components: {
-        UserOutlined,
-        EditOutlined,
-        LogoutOutlined,
-
-    },
+    UserOutlined,
+    EditOutlined,
+    LogoutOutlined,
+    CiCircleFilled
+},
 
     data() {
         return {
@@ -218,7 +209,7 @@ export default {
             // remove self from users list
             this.users = data.value.data.filter((user: any) => user.id != this.activeUserId);
             this.users.sort((a: any, b: any) => a.name.localeCompare(b.name));
-                
+
 
         }
 
@@ -320,10 +311,11 @@ export default {
 
 
         },
-        async selectUserChat(e: any) {
+        async selectUserChat(e:any, uname: string, uid: string) {
+            console.log("clicked")
             this.clearSelection();
-            this.title = e.target.attributes.name.value;
-            const chatId = this.getUserChatId(e.target.attributes.id.value)
+            this.title = uname
+            const chatId = this.getUserChatId(uid)
             this.activeGroupId = chatId;
             e.target.classList.add('active');
             await this.changeMessageFromUserChatId(chatId);
@@ -347,6 +339,13 @@ export default {
             this.leaveGroupChat();
             this.$router.push('/user/' + this.activeUserId);
         },
+        editFavorite() {
+            this.leaveGroupChat();
+            this.$router.push('/favorite/'+this.activeUserId);
+        },
+        async addFavorite(name: string) {
+            console.log(name)
+        }
 
 
 
