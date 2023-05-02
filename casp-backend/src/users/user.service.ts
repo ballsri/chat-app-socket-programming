@@ -38,9 +38,14 @@ export class UserService {
       userFound.password = userDto.password;
       userFound.name = userDto.name;
       return await this.userRepository.save(userFound);
-    
   }
 
+  async editFavorite(id: string, userDto: UserDto): Promise<User> {
+    const userFound = await this.userRepository.findOneBy({ id: id });
+    userFound.favorite = userDto.favorite;
+    return await this.userRepository.save(userFound);
+  }
+  
   async deleteUser(id: string): Promise<void> {
     await this.userRepository.delete(id);
   }
