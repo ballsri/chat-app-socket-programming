@@ -59,6 +59,7 @@
                     </a-avatar>
                     {{ user.name }}
                     <plus-circle-outlined v-on:click.stop="addFavorite(user.name)" />
+                    <StopOutlined v-on:click.stop="banUser(user.id)"/>
                 </a-list-item>
             </a-list>
         </div>
@@ -135,6 +136,7 @@
 import { UserOutlined, EditOutlined, LogoutOutlined, CiCircleFilled } from '@ant-design/icons-vue';
 import { message } from 'ant-design-vue';
 import jwtDecode from 'jwt-decode';
+import { UUID } from 'crypto';
 
 const nuxtApp: any = useNuxtApp();
 const runTimeConfig = useRuntimeConfig();
@@ -345,6 +347,32 @@ export default {
         },
         async addFavorite(name: string) {
             console.log(name)
+        },
+        async banUser(id: any){
+            console.log(this.activeUserId)
+            console.log(id)
+            useFetch(`${runTimeConfig.baseURL}` + '/api/v1/users/block/' + this.activeUserId + "/"+ id, {
+                method: "PUT"
+            }).then((res) => {
+                console.log(res.data.value)
+                if (res.data.value !== null) {
+                    if (res.data.value.success) {
+                        message.success("Block Success")
+                        Window.location.reload();
+                        return;
+                    } else {
+                        message.error(res.data.value.message)
+                        return;
+                    }
+                }
+
+                for (let i = 0; i < res.error.value.response._data.message.length; i++) {
+                    message.error(res.error.value.response._data.message[i])
+                }
+
+
+            })
+
         }
 
 

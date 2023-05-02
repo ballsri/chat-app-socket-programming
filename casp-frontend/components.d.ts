@@ -28,6 +28,7 @@ declare module '@vue/runtime-core' {
     PlusOutlined: typeof import('@ant-design/icons-vue')['PlusOutlined']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
+    StopOutlined: typeof import('@ant-design/icons-vue')['StopOutlined']
     UserOutlined: typeof import('@ant-design/icons-vue')['UserOutlined']
   }
 }
