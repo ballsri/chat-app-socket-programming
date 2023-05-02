@@ -98,8 +98,8 @@
     border: 5px;
     border-radius: 5px;
     border-color: #a4b8f0;
-    pointer-events: none;
-    cursor: none;
+    /* pointer-events: none; */
+    cursor: default;
   }
 
   .group-chats-container {
